@@ -27,7 +27,6 @@ public class MainActivity
     @Override
     protected void init(Bundle savedInstanceState) {
         initView();
-        // test commit
     }
 
     private void initView() {
