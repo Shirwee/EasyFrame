@@ -25,7 +25,8 @@ import io.reactivex.disposables.Disposable;
 
 
 /**
- * Created by zhpan on 2017/4/18.
+ * 网络请求统一处理
+ * @author shirwee
  */
 
 public abstract class DefaultObserver<T extends BasicResponse> implements Observer<T> {
