@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 
 import com.trello.rxlifecycle2.components.RxFragment;
 
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+
 
 /**
  * @author shirwee
@@ -18,7 +21,7 @@ public abstract class BaseFragment
 
     public View rootView;
     public LayoutInflater inflater;
-
+    public CompositeDisposable mCompositeDisposable;
 
     @Nullable
     @Override
@@ -40,9 +43,25 @@ public abstract class BaseFragment
 
     protected abstract void init(Bundle savedInstanceState);
 
-//    protected void showToast(String msg) {
-//        ToastUtils.show(msg);
-//    }
+    /**
+     * 添加订阅
+     */
+    public void addDisposable(Disposable... ds) {
+        if (mCompositeDisposable == null) {
+            mCompositeDisposable = new CompositeDisposable();
+        }
+        mCompositeDisposable.addAll(ds);
+    }
+
+    /**
+     * 取消所有订阅
+     */
+    public void clearDisposable() {
+        if (mCompositeDisposable != null) {
+            mCompositeDisposable.clear();
+        }
+    }
+
 
     @Override
     public void onResume() {

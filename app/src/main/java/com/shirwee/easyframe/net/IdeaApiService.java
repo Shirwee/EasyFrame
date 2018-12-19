@@ -51,4 +51,7 @@ public interface IdeaApiService {
     Observable<BasicResponse> uploadFiles(@Part("filename") String description,
                                           @PartMap() Map<String, RequestBody> maps);
 
+    /*-------------------------------------------------漂亮的分割线----------------------------------------------------*/
+
+
 }

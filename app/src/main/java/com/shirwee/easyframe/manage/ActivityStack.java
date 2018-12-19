@@ -2,6 +2,7 @@ package com.shirwee.easyframe.manage;
 
 import android.app.Activity;
 
+import java.util.Iterator;
 import java.util.Stack;
 
 
@@ -33,6 +34,16 @@ public class ActivityStack {
             activityStack = new Stack<Activity>();
         }
         activityStack.add(activity);
+    }
+
+    /**
+     * 移除指定的Activity
+     */
+    public void removeActivity(Activity activity) {
+        if (activity != null) {
+            activityStack.remove(activity);
+            activity = null;
+        }
     }
 
     /**
@@ -78,21 +89,11 @@ public class ActivityStack {
     public void finishActivity(Activity activity) {
         if (activity != null) {
             activityStack.remove(activity);
-            // activity.finish();//此处不用finish
+            activity.finish();//此处不用finish
             activity = null;
         }
     }
 
-    /**
-     * 结束指定的Activity(重载)
-     */
-    public void finishActivity(Class<?> cls) {
-        for (Activity activity : activityStack) {
-            if (activity.getClass().equals(cls)) {
-                finishActivity(activity);
-            }
-        }
-    }
 
     /**
      * 关闭除了指定activity以外的全部activity 如果cls不存在于栈中，则栈全部清空
@@ -100,17 +101,39 @@ public class ActivityStack {
      * @param cls
      */
     public void finishOthersActivity(Class<?> cls) {
-        for (Activity activity : activityStack) {
-            if (!(activity.getClass().equals(cls))) {
-                finishActivity(activity);
+        Iterator<Activity> iterator = activityStack.iterator();
+        while (iterator.hasNext()) {
+            Activity activity = iterator.next();
+            if (!activity.getClass()
+                    .equals(cls))
+            {
+                activity.finish();
             }
         }
+
     }
 
+    /**
+     * 结束当前页面之前的所有Activity
+     */
+    public void finishCurrentAfterActivity() {
+        if (activityStack != null && activityStack.size() > 0) {
+            for (int i = 0, size = activityStack.size() - 1; i < size; i++) {
+                if (null != activityStack.get(i)) {
+                    activityStack.get(i).finish();
+                }
+            }
+            activityStack.clear();
+        }
+
+    }
     /**
      * 结束所有Activity
      */
     public void finishAllActivity() {
+        if (activityStack == null || activityStack.size() == 0) {
+            return;
+        }
         for (int i = 0, size = activityStack.size(); i < size; i++) {
             if (null != activityStack.get(i)) {
                 (activityStack.get(i)).finish();

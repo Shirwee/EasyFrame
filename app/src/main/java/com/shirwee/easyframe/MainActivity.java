@@ -51,6 +51,10 @@ public class MainActivity
                        ToastUtils.normal("请求成功，妹子个数为"+results.size());
                    }
 
+                   @Override
+                   public void onFail(Throwable e) {
+                       super.onFail(e);
+                   }
                });
     }
 }

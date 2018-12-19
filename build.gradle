@@ -27,7 +27,7 @@ task clean(type: Delete) {
 }
 
 ext {
-    supportLibVersion = '25.1.0'
+    supportLibVersion = '27.0.0'
 
     butterknifeVersion = '8.5.1'
     rxjava2Version = '2.0.8'
@@ -38,5 +38,5 @@ ext {
     releaseVersionCode = 1
     releaseVersionName = '1.0.0'
     minSdkVersion = 16
-    targetSdkVersion = 24
+    targetSdkVersion = 27
 }

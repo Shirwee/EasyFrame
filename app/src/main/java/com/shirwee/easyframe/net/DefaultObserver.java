@@ -8,12 +8,14 @@ import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 import com.shirwee.easyframe.R;
 import com.shirwee.easyframe.base.BasicResponse;
 import com.shirwee.easyframe.utils.ToastUtils;
+import com.shirwee.easyframe.utils.UiUtils;
 import com.shirwee.easyframe.utils.log.LogUtils;
 import com.shirwee.easyframe.widget.LoadDialog;
 
 import org.json.JSONException;
 
 import java.io.InterruptedIOException;
+import java.lang.ref.WeakReference;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
@@ -22,24 +24,30 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
 
-
 /**
  * Created by zhpan on 2017/4/18.
  */
 
 public abstract class DefaultObserver<T extends BasicResponse> implements Observer<T> {
-    private Activity activity;
-    //  Activity 是否在执行onStop()时取消订阅
-    private boolean isAddInStop = false;
+    private boolean isShowLoading;
+    private WeakReference<Activity> mReference;
+
     public DefaultObserver(Activity activity) {
-        this.activity = activity;
+        this.mReference = new WeakReference<>(activity);
     }
 
     public DefaultObserver(Activity activity, boolean isShowLoading) {
-        this.activity = activity;
+        this.mReference = new WeakReference<>(activity);
+        this.isShowLoading = isShowLoading;
         if (isShowLoading) {
-            LoadDialog.show(activity,"加载中...");
+            LoadDialog.show(mReference.get(), "加载中...");
         }
+    }
+
+    public DefaultObserver(Activity activity, String message) {
+        this.mReference = new WeakReference<>(activity);
+        this.isShowLoading = true;
+        LoadDialog.show(mReference.get(), message);
     }
 
     @Override
@@ -53,23 +61,41 @@ public abstract class DefaultObserver<T extends BasicResponse> implements Observ
         if (!response.isError()) {
             onSuccess(response);
         } else {
-            onFail(response);
+            String message = TextUtils.isEmpty(response.getMessage()) ?
+                    UiUtils.getString(R.string.response_return_error)
+                    : response.getMessage();
+
+            onFail(new MessageException(message));
         }
-        /*if (response.getCode() == 200) {
-            onSuccess(response);
-        } else {
-            onFail(response);
-        }*/
     }
 
-    private void dismissProgress(){
-        LoadDialog.dismiss(activity);
-    }
 
     @Override
     public void onError(Throwable e) {
-        LogUtils.e( e.getMessage());
+        LogUtils.e(e.getMessage());
         dismissProgress();
+        onFail(e);
+    }
+
+    @Override
+    public void onComplete() {
+    }
+
+    private void dismissProgress() {
+        if (isShowLoading) {
+            LoadDialog.dismiss(mReference.get());
+        }
+    }
+
+    /**
+     * 请求成功
+     *
+     * @param response 服务器返回的数据
+     */
+    abstract public void onSuccess(T response);
+
+
+    public void onFail(Throwable e) {
         if (e instanceof HttpException) {     //   HTTP错误
             onException(ExceptionReason.BAD_NETWORK);
         } else if (e instanceof ConnectException
@@ -81,33 +107,11 @@ public abstract class DefaultObserver<T extends BasicResponse> implements Observ
                 || e instanceof JSONException
                 || e instanceof ParseException) {   //  解析错误
             onException(ExceptionReason.PARSE_ERROR);
-        } else {
+        }else if (e instanceof MessageException){
+            // 自定义的异常
+            ToastUtils.normal(e.getMessage());
+        }else {
             onException(ExceptionReason.UNKNOWN_ERROR);
-        }
-    }
-
-    @Override
-    public void onComplete() {
-    }
-
-    /**
-     * 请求成功
-     *
-     * @param response 服务器返回的数据
-     */
-    abstract public void onSuccess(T response);
-
-    /**
-     * 服务器返回数据，但响应码不为200
-     *
-     * @param response 服务器返回的数据
-     */
-    public void onFail(T response) {
-        String message = response.getMessage();
-        if (TextUtils.isEmpty(message)) {
-            ToastUtils.normal(R.string.response_return_error);
-        } else {
-            ToastUtils.normal(message);
         }
     }
 
